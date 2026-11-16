@@ -8,39 +8,44 @@ CREATE TABLE usuarios (
     senha_hash TEXT NOT NULL,
     perfil VARCHAR(20) NOT NULL DEFAULT 'funcionario'
         CHECK (perfil IN ('admin', 'funcionario')),
-    ativo BOOLEAN DEFAULT TRUE
+    ativo BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE clientes (
     id_cliente SERIAL PRIMARY KEY,
     nome VARCHAR(120) NOT NULL,
-    email VARCHAR(150),
+    email VARCHAR(150) NOT NULL UNIQUE,
     telefone VARCHAR(20),
-    cpf_cnpj VARCHAR(20) UNIQUE,
+    cpf_cnpj VARCHAR(14) NOT NULL UNIQUE
+        CHECK (cpf_cnpj ~ '^([0-9]{11}|[0-9]{14})$'),
     data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- O estoque pode ficar negativo (RN05): o pedido é aceito mesmo sem saldo.
 CREATE TABLE produtos (
     id_produto SERIAL PRIMARY KEY,
     nome VARCHAR(120) NOT NULL,
     descricao TEXT,
-    preco NUMERIC(10,2) NOT NULL CHECK (preco >= 0),
-    estoque INTEGER NOT NULL DEFAULT 0 CHECK (estoque >= 0),
-    ativo BOOLEAN DEFAULT TRUE
+    preco NUMERIC(10,2) NOT NULL CHECK (preco > 0),
+    estoque INTEGER NOT NULL DEFAULT 0,
+    ativo BOOLEAN NOT NULL DEFAULT TRUE
 );
 
+-- Excluir um cliente remove os pedidos dele (e, em cascata, os itens).
 CREATE TABLE pedidos (
     id_pedido SERIAL PRIMARY KEY,
     id_cliente INTEGER NOT NULL,
     id_usuario INTEGER NOT NULL,
     data_pedido TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status VARCHAR(20) DEFAULT 'aberto'
-        CHECK (status IN ('aberto', 'pago', 'cancelado')),
-    valor_total NUMERIC(10,2) DEFAULT 0,
-    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),
+    status VARCHAR(20) NOT NULL DEFAULT 'rascunho'
+        CHECK (status IN ('rascunho', 'confirmado', 'pago', 'entregue', 'cancelado')),
+    valor_total NUMERIC(10,2) NOT NULL DEFAULT 0,
+    FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente) ON DELETE CASCADE,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 );
 
+-- preco_unitario guarda o preço do momento da venda, para que o histórico
+-- do pedido não mude quando o preço do produto for alterado depois.
 CREATE TABLE itens_pedido (
     id_item SERIAL PRIMARY KEY,
     id_pedido INTEGER NOT NULL,
@@ -53,18 +58,28 @@ CREATE TABLE itens_pedido (
     UNIQUE (id_pedido, id_produto)
 );
 
+CREATE TABLE auditoria (
+    id_auditoria SERIAL PRIMARY KEY,
+    id_usuario INTEGER,
+    acao VARCHAR(60) NOT NULL,
+    data_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    detalhe TEXT,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+);
+
+-- Senhas de demonstração: admin123 e func123 (gravadas com bcrypt).
 INSERT INTO usuarios (nome, email, senha_hash, perfil)
 VALUES
 (
     'Administrador',
     'admin@comercial.com',
-    crypt('Admin123!', gen_salt('bf', 10)),
+    crypt('admin123', gen_salt('bf', 10)),
     'admin'
 ),
 (
-    'Carlos Silva',
-    'carlos@comercial.com',
-    crypt('123456', gen_salt('bf', 10)),
+    'Funcionário',
+    'funcionario@comercial.com',
+    crypt('func123', gen_salt('bf', 10)),
     'funcionario'
 );
 
@@ -87,8 +102,8 @@ VALUES
 INSERT INTO pedidos (id_cliente, id_usuario, status, valor_total)
 VALUES
 (1, 1, 'pago', 3580.00),
-(2, 2, 'aberto', 300.00),
-(3, 1, 'pago', 950.00);
+(2, 2, 'confirmado', 300.00),
+(3, 1, 'entregue', 950.00);
 
 INSERT INTO itens_pedido
 (id_pedido, id_produto, quantidade, preco_unitario, subtotal)

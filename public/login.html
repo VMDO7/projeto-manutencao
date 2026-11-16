@@ -48,10 +48,10 @@
                     body: JSON.stringify({ email, senha })
                 })
 
-                const dados = await resposta.json()
+                const dados = await resposta.json().catch(() => ({}))
 
                 if (!resposta.ok) {
-                    mensagem.textContent = dados.mensagem
+                    mensagem.textContent = dados.mensagem || 'Não foi possível entrar. Tente novamente.'
                     return
                 }
 

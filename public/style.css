@@ -241,6 +241,101 @@ td button {
     margin-top: 20px;
 }
 
+.mensagem.erro {
+    color: #b91c1c;
+}
+
+.mensagem.sucesso {
+    color: #15803d;
+}
+
+button:disabled {
+    background: #d1d5db;
+    color: #6b7280;
+    cursor: not-allowed;
+}
+
+.indicadores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+    margin-top: 20px;
+}
+
+.indicador {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 20px;
+    border-radius: 8px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+}
+
+.indicador-rotulo {
+    font-size: 14px;
+    color: #1e3a8a;
+}
+
+.indicador strong {
+    font-size: 28px;
+    color: #1e3a8a;
+}
+
+.indicador small {
+    color: #6b7280;
+}
+
+.paginacao {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 12px;
+    font-size: 14px;
+}
+
+.paginacao button {
+    padding: 7px 12px;
+}
+
+.btn-avancar {
+    background: #15803d;
+}
+
+.btn-avancar:hover {
+    background: #166534;
+}
+
+.status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    background: #e5e7eb;
+}
+
+.status-rascunho { background: #e5e7eb; color: #374151; }
+.status-confirmado { background: #dbeafe; color: #1e40af; }
+.status-pago { background: #fef3c7; color: #92400e; }
+.status-entregue { background: #dcfce7; color: #166534; }
+.status-cancelado { background: #fee2e2; color: #991b1b; }
+
+.estoque-negativo,
+.aviso {
+    color: #b91c1c;
+    font-weight: bold;
+}
+
+.total-pedido {
+    font-weight: bold;
+    margin: 0;
+}
+
+.detalhes table {
+    min-width: 0;
+}
+
 @media (max-width: 600px) {
     .topbar {
         padding: 15px;
@@ -256,5 +351,10 @@ td button {
 
     .linha-produto {
         grid-template-columns: 1fr;
+    }
+
+    .paginacao {
+        flex-wrap: wrap;
+        justify-content: center;
     }
 }

@@ -24,11 +24,30 @@
             <button class="menu-btn" data-tela="clientes">Clientes</button>
             <button class="menu-btn" data-tela="produtos">Produtos</button>
             <button class="menu-btn" data-tela="pedidos">Pedidos</button>
+            <button class="menu-btn" data-tela="auditoria">Auditoria</button>
         </nav>
 
         <section id="inicio" class="tela">
             <h2>Painel inicial</h2>
             <p>Bem-vindo ao Sistema de Gerenciamento Comercial.</p>
+
+            <div class="indicadores">
+                <div class="indicador">
+                    <span class="indicador-rotulo">Clientes cadastrados</span>
+                    <strong id="indTotalClientes">–</strong>
+                </div>
+
+                <div class="indicador">
+                    <span class="indicador-rotulo">Produtos ativos em estoque</span>
+                    <strong id="indProdutosEstoque">–</strong>
+                </div>
+
+                <div class="indicador">
+                    <span class="indicador-rotulo">Faturamento do mês</span>
+                    <strong id="indFaturamento">–</strong>
+                    <small>Pedidos pagos ou entregues no mês corrente</small>
+                </div>
+            </div>
 
             <div class="cards">
                 <div class="card">
@@ -57,17 +76,18 @@
             <form id="formCliente" class="formulario">
                 <input type="hidden" id="idCliente">
 
-                <label>Nome</label>
+                <label for="clienteNome">Nome</label>
                 <input type="text" id="clienteNome" required>
 
-                <label>E-mail</label>
-                <input type="email" id="clienteEmail">
+                <label for="clienteEmail">E-mail</label>
+                <input type="email" id="clienteEmail" required>
 
-                <label>Telefone</label>
+                <label for="clienteTelefone">Telefone (opcional)</label>
                 <input type="text" id="clienteTelefone">
 
-                <label>CPF/CNPJ</label>
-                <input type="text" id="clienteDocumento">
+                <label for="clienteDocumento">CPF/CNPJ</label>
+                <input type="text" id="clienteDocumento" inputmode="numeric" required
+                       placeholder="Somente números: 11 dígitos (CPF) ou 14 (CNPJ)">
 
                 <div class="acoes">
                     <button type="submit">Salvar cliente</button>
@@ -84,12 +104,15 @@
                             <th>Nome</th>
                             <th>E-mail</th>
                             <th>Telefone</th>
+                            <th>CPF/CNPJ</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody id="listaClientes"></tbody>
                 </table>
             </div>
+
+            <div class="paginacao" id="paginacaoClientes"></div>
         </section>
 
         <section id="produtos" class="tela escondido">
@@ -98,17 +121,17 @@
             <form id="formProduto" class="formulario">
                 <input type="hidden" id="idProduto">
 
-                <label>Nome</label>
+                <label for="produtoNome">Nome</label>
                 <input type="text" id="produtoNome" required>
 
-                <label>Descrição</label>
+                <label for="produtoDescricao">Descrição</label>
                 <input type="text" id="produtoDescricao">
 
-                <label>Preço</label>
-                <input type="number" id="produtoPreco" min="0" step="0.01" required>
+                <label for="produtoPreco">Preço</label>
+                <input type="number" id="produtoPreco" min="0.01" step="0.01" required>
 
-                <label>Estoque</label>
-                <input type="number" id="produtoEstoque" min="0" step="1" required>
+                <label for="produtoEstoque">Estoque</label>
+                <input type="number" id="produtoEstoque" step="1" required>
 
                 <div class="acoes">
                     <button type="submit">Salvar produto</button>
@@ -123,6 +146,7 @@
                     <thead>
                         <tr>
                             <th>Produto</th>
+                            <th>Descrição</th>
                             <th>Preço</th>
                             <th>Estoque</th>
                             <th>Ações</th>
@@ -131,13 +155,15 @@
                     <tbody id="listaProdutos"></tbody>
                 </table>
             </div>
+
+            <div class="paginacao" id="paginacaoProdutos"></div>
         </section>
 
         <section id="pedidos" class="tela escondido">
             <h2>Gerenciamento de pedidos</h2>
 
             <form id="formPedido" class="formulario">
-                <label>Cliente</label>
+                <label for="pedidoCliente">Cliente</label>
                 <select id="pedidoCliente" required>
                     <option value="">Selecione um cliente</option>
                 </select>
@@ -145,16 +171,18 @@
                 <h3>Produtos do pedido</h3>
 
                 <div class="linha-produto">
-                    <select id="pedidoProduto">
+                    <select id="pedidoProduto" aria-label="Produto">
                         <option value="">Selecione um produto</option>
                     </select>
 
-                    <input type="number" id="pedidoQuantidade" min="1" value="1">
+                    <input type="number" id="pedidoQuantidade" min="1" step="1" value="1" aria-label="Quantidade">
 
                     <button type="button" id="adicionarItem">Adicionar</button>
                 </div>
 
                 <ul id="itensSelecionados"></ul>
+
+                <p id="totalPedido" class="total-pedido"></p>
 
                 <button type="submit">Registrar pedido</button>
             </form>
@@ -167,6 +195,7 @@
                         <tr>
                             <th>Número</th>
                             <th>Cliente</th>
+                            <th>Vendedor</th>
                             <th>Data</th>
                             <th>Status</th>
                             <th>Total</th>
@@ -177,10 +206,33 @@
                 </table>
             </div>
 
-            <div id="detalhesPedido" class="detalhes"></div>
+            <div class="paginacao" id="paginacaoPedidos"></div>
+
+            <div id="detalhesPedido" class="detalhes escondido"></div>
         </section>
 
-        <p id="mensagem" class="mensagem"></p>
+        <section id="auditoria" class="tela escondido">
+            <h2>Auditoria</h2>
+            <p>Histórico de inclusões, alterações e exclusões feitas no sistema.</p>
+
+            <div class="tabela-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data e hora</th>
+                            <th>Usuário</th>
+                            <th>Ação</th>
+                            <th>Detalhe</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaAuditoria"></tbody>
+                </table>
+            </div>
+
+            <div class="paginacao" id="paginacaoAuditoria"></div>
+        </section>
+
+        <p id="mensagem" class="mensagem" role="status"></p>
 
     </main>
 
